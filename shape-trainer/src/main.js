@@ -1,25 +1,11 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-
-// ---------------------------
-// Utilities
-// ---------------------------
-const rand = (a,b)=>a + Math.random()*(b-a)
-const randi = (a,b)=>Math.floor(rand(a,b+1))
-const fmtTime = (s)=>{
-  s = Math.max(0, Math.floor(s))
-  const m = Math.floor(s/60)
-  const ss = String(s%60).padStart(2,'0')
-  return `${String(m).padStart(2,'0')}:${ss}`
-}
-const fmtShort = (s)=>{
-  s = Math.floor(s)
-  if (s < 60) return `${s}s`
-  const m = Math.floor(s/60)
-  const ss = s%60
-  return ss ? `${m}m ${ss}s` : `${m}m`
-}
+import { APP_CONFIG } from './config/env'
+import { applyCompletedRound, calculateCycleTime } from './engine/session'
+import { loadStats, saveStats as persistStats } from './state/statsStore'
+import { randomInt } from './utils/random'
+import { formatClock, formatShortDuration } from './utils/time'
 
 // ---------------------------
 // DOM
@@ -56,32 +42,18 @@ const avgRoundEl = document.getElementById('avgRound')
 // ---------------------------
 // Stats (localStorage)
 // ---------------------------
-const STORAGE_KEY = 'shape_trainer_stats_v1'
-const stats = loadStats()
+const STORAGE_KEY = APP_CONFIG.statsStorageKey
+const stats = loadStats(localStorage, STORAGE_KEY)
 
-function loadStats(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if(!raw) return { totalRounds:0, totalTime:0, bestStreak:0 }
-    const s = JSON.parse(raw)
-    return {
-      totalRounds: Number(s.totalRounds)||0,
-      totalTime: Number(s.totalTime)||0,
-      bestStreak: Number(s.bestStreak)||0,
-    }
-  }catch{
-    return { totalRounds:0, totalTime:0, bestStreak:0 }
-  }
-}
 function saveStats(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
+  persistStats(localStorage, STORAGE_KEY, stats)
   renderStats()
 }
 function renderStats(){
   totalRoundsEl.textContent = stats.totalRounds
-  totalTimeEl.textContent = fmtShort(stats.totalTime)
+  totalTimeEl.textContent = formatShortDuration(stats.totalTime)
   bestStreakEl.textContent = stats.bestStreak
-  avgRoundEl.textContent = stats.totalRounds ? fmtShort(stats.totalTime / stats.totalRounds) : '0s'
+  avgRoundEl.textContent = stats.totalRounds ? formatShortDuration(stats.totalTime / stats.totalRounds) : '0s'
 }
 renderStats()
 
@@ -296,15 +268,15 @@ function mannequin(hard){
   g.add(thighR)
 
   if (hard){
-    torso.rotation.y = THREE.MathUtils.degToRad(randi(-35,35))
-    pelvis.rotation.y = THREE.MathUtils.degToRad(randi(-20,20))
-    pelvis.rotation.x = THREE.MathUtils.degToRad(randi(-12,12))
-    torso.rotation.x = THREE.MathUtils.degToRad(randi(-10,10))
+    torso.rotation.y = THREE.MathUtils.degToRad(randomInt(-35,35))
+    pelvis.rotation.y = THREE.MathUtils.degToRad(randomInt(-20,20))
+    pelvis.rotation.x = THREE.MathUtils.degToRad(randomInt(-12,12))
+    torso.rotation.x = THREE.MathUtils.degToRad(randomInt(-10,10))
 
-    upperArmL.rotation.x = THREE.MathUtils.degToRad(randi(-40,40))
-    upperArmR.rotation.x = THREE.MathUtils.degToRad(randi(-40,40))
-    forearmL.rotation.x = THREE.MathUtils.degToRad(randi(-40,40))
-    forearmR.rotation.x = THREE.MathUtils.degToRad(randi(-40,40))
+    upperArmL.rotation.x = THREE.MathUtils.degToRad(randomInt(-40,40))
+    upperArmR.rotation.x = THREE.MathUtils.degToRad(randomInt(-40,40))
+    forearmL.rotation.x = THREE.MathUtils.degToRad(randomInt(-40,40))
+    forearmR.rotation.x = THREE.MathUtils.degToRad(randomInt(-40,40))
   }
 
   return g
@@ -338,9 +310,9 @@ function clearCurrent(){
 
 function randomizeOrientation(group){
   group.rotation.set(
-    THREE.MathUtils.degToRad(randi(-35,35)),
-    THREE.MathUtils.degToRad(randi(0,360)),
-    THREE.MathUtils.degToRad(randi(-25,25))
+    THREE.MathUtils.degToRad(randomInt(-35,35)),
+    THREE.MathUtils.degToRad(randomInt(0,360)),
+    THREE.MathUtils.degToRad(randomInt(-25,25))
   )
 }
 
@@ -373,7 +345,7 @@ function buildNewShape({ keepShape=false } = {}){
       ? SHAPES
       : SHAPES.filter(s => s.name !== 'Mannequin (Hard)')
 
-    pick = pool[randi(0, pool.length-1)]
+    pick = pool[randomInt(0, pool.length-1)]
     if (hard && Math.random() < 0.45) pick = SHAPES.find(s=>s.name==='Mannequin (Hard)') || pick
   }
 
@@ -402,7 +374,7 @@ let sessionStreak = 0
 
 function setRemaining(sec){
   remaining = sec
-  timerLabel.textContent = fmtTime(remaining)
+  timerLabel.textContent = formatClock(remaining)
 }
 
 function start(){
@@ -418,11 +390,17 @@ function pause(){
 function toggleStartPause(){ isRunning ? pause() : start() }
 
 function completeRound(){
-  sessionRounds++
-  sessionStreak++
-  stats.totalRounds++
-  stats.totalTime += Number(durationSelect.value)
-  if (sessionStreak > stats.bestStreak) stats.bestStreak = sessionStreak
+  const { nextStats, nextSessionRounds, nextSessionStreak } = applyCompletedRound({
+    stats,
+    sessionRounds,
+    sessionStreak,
+    roundDurationSeconds: Number(durationSelect.value),
+  })
+
+  Object.assign(stats, nextStats)
+  sessionRounds = nextSessionRounds
+  sessionStreak = nextSessionStreak
+
   roundsNow.textContent = sessionRounds
   streakNow.textContent = sessionStreak
   saveStats()
@@ -433,9 +411,10 @@ function breakStreak(){
 }
 
 function cycleTime(){
-  const dur = Number(durationSelect.value)
-  const cadence = Number(autoswitchSelect.value)
-  return cadence > 0 ? Math.min(cadence, dur) : dur
+  return calculateCycleTime({
+    durationSeconds: Number(durationSelect.value),
+    autoSwitchSeconds: Number(autoswitchSelect.value),
+  })
 }
 
 function nextShape({ asRound=true } = {}){
@@ -447,7 +426,7 @@ function nextShape({ asRound=true } = {}){
 
 function updateNextIn(){
   const as = Number(autoswitchSelect.value)
-  nextIn.textContent = as ? fmtShort(as) : 'Off'
+  nextIn.textContent = as ? formatShortDuration(as) : 'Off'
 }
 updateNextIn()
 
@@ -526,7 +505,7 @@ function animate(now){
     if (remaining <= 0){
       nextShape({ asRound:true })
     } else {
-      timerLabel.textContent = fmtTime(remaining)
+      timerLabel.textContent = formatClock(remaining)
     }
   }
 
