@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Shape Trainer</title>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <h1>3D Shape Training Engine</h1>
+        <div class="sub">Timed drills with interactive 3D forms (Orbit like Blender).</div>
+
+        <div class="card">
+          <div class="shapeName" id="shapeLabel">—</div>
+          <div class="timer" id="timerLabel">00:30</div>
+          <div class="note" id="modeLabel">Mode: Auto-switch</div>
+
+          <div class="row">
+            <button id="startBtn">Start</button>
+            <button class="secondary" id="pauseBtn">Pause</button>
+          </div>
+          <div class="row">
+            <button class="secondary" id="nextBtn">Next Shape</button>
+            <button class="danger" id="resetStatsBtn">Reset Stats</button>
+          </div>
+
+          <div class="pills">
+            <span class="pill">Auto-switch: <b id="nextIn">—</b></span>
+            <span class="pill">Rounds: <b id="roundsNow">0</b></span>
+            <span class="pill">Streak: <b id="streakNow">0</b></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div>
+              <label>Round duration</label>
+              <select id="durationSelect">
+                <option value="15">15s</option>
+                <option value="30" selected>30s</option>
+                <option value="60">60s</option>
+                <option value="120">2 min</option>
+              </select>
+            </div>
+            <div>
+              <label>Auto-switch every</label>
+              <select id="autoswitchSelect">
+                <option value="0">Off</option>
+                <option value="15">15s</option>
+                <option value="30" selected>30s</option>
+                <option value="60">60s</option>
+                <option value="120">2 min</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="toggles">
+            <label class="toggle"><span><b>Hard Mode</b><small>compound forms</small></span><input id="hardMode" type="checkbox"></label>
+            <label class="toggle"><span><b>Figure Rotation</b><small>same shape, new angle</small></span><input id="figureRotation" type="checkbox"></label>
+            <label class="toggle"><span><b>Wireframe</b><small>construction edges</small></span><input id="wireframe" type="checkbox" checked></label>
+            <label class="toggle"><span><b>Cross Contours</b><small>surface rings</small></span><input id="contours" type="checkbox" checked></label>
+            <label class="toggle"><span><b>Plane Shading</b><small>faceted planes</small></span><input id="flatShading" type="checkbox" checked></label>
+            <label class="toggle"><span><b>Axis + Grid</b><small>orientation aids</small></span><input id="helpers" type="checkbox" checked></label>
+          </div>
+
+          <label>Auto-rotate speed</label>
+          <input id="rotSpeed" type="range" min="0" max="2.5" step="0.05" value="0.9" />
+          <div class="note">Set to 0 if you only want manual orbit.</div>
+
+          <label style="margin-top:10px">Light angle</label>
+          <input id="lightAngle" type="range" min="0" max="360" step="1" value="40" />
+          <div class="note">For plane/value training.</div>
+        </div>
+
+        <div class="card">
+          <b>Stats (saved locally)</b>
+          <div class="stat"><span>Total rounds</span><b id="totalRounds">0</b></div>
+          <div class="stat"><span>Total time</span><b id="totalTime">0s</b></div>
+          <div class="stat"><span>Best streak</span><b id="bestStreak">0</b></div>
+          <div class="stat"><span>Avg / round</span><b id="avgRound">0s</b></div>
+        </div>
+
+        <div class="card">
+          <b>Controls</b>
+          <div class="note">
+            Orbit: drag • Zoom: scroll • Pan: right-drag<br/>
+            <span class="kbd">Space</span> Start/Pause • <span class="kbd">N</span> Next • <span class="kbd">R</span> New Angle
+          </div>
+        </div>
+      </aside>
+
+      <main class="viewer">
+        <canvas id="c"></canvas>
+        <div class="hud">
+          <div><b>Goal:</b> identify big planes + axis, then sketch the simplest primitive breakdown.</div>
+          <div><b>Workflow:</b> silhouette → centerline/cross-contours → planes → proportions.</div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
