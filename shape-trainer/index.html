@@ -53,20 +53,33 @@
                 <option value="120">2 min</option>
               </select>
             </div>
+            <div>
+              <label>Difficulty Tier</label>
+              <select id="tierSelect">
+                <option value="mixed" selected>Mixed</option>
+                <option value="1">Tier 1</option>
+                <option value="2">Tier 2</option>
+                <option value="3">Tier 3</option>
+                <option value="4">Tier 4</option>
+              </select>
+            </div>
           </div>
 
           <div class="toggles">
-            <label class="toggle"><span><b>Hard Mode</b><small>compound forms</small></span><input id="hardMode" type="checkbox"></label>
-            <label class="toggle"><span><b>Figure Rotation</b><small>same shape, new angle</small></span><input id="figureRotation" type="checkbox"></label>
+            <label class="toggle"><span><b>Same shape, new angle</b><small>figure rotation mode</small></span><input id="figureRotation" type="checkbox"></label>
+            <label class="toggle"><span><b>Manual Rotate (object)</b><small>drag rotates shape</small></span><input id="manualRotate" type="checkbox"></label>
+            <label class="toggle"><span><b>Practice Mode</b><small>normal or mistakes</small></span><select id="practiceMode"><option value="normal" selected>Normal</option><option value="mistakes">Repeat Mistakes</option></select></label>
             <label class="toggle"><span><b>Wireframe</b><small>construction edges</small></span><input id="wireframe" type="checkbox" checked></label>
             <label class="toggle"><span><b>Cross Contours</b><small>surface rings</small></span><input id="contours" type="checkbox" checked></label>
             <label class="toggle"><span><b>Plane Shading</b><small>faceted planes</small></span><input id="flatShading" type="checkbox" checked></label>
             <label class="toggle"><span><b>Axis + Grid</b><small>orientation aids</small></span><input id="helpers" type="checkbox" checked></label>
           </div>
 
-          <label>Auto-rotate speed</label>
-          <input id="rotSpeed" type="range" min="0" max="2.5" step="0.05" value="0.9" />
-          <div class="note">Set to 0 if you only want manual orbit.</div>
+          <div class="row" style="margin-top:10px">
+            <button class="secondary" id="markMistakeBtn">Mark Mistake</button>
+            <button class="secondary" id="clearMistakesBtn">Clear Mistakes</button>
+          </div>
+          <div class="note" id="mistakeNotice">Mistake bank: 0</div>
 
           <label style="margin-top:10px">Light angle</label>
           <input id="lightAngle" type="range" min="0" max="360" step="1" value="40" />

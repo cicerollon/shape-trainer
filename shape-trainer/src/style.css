@@ -95,6 +95,7 @@ button.danger{
   background:rgba(0,0,0,0.18);
 }
 .toggle small{ display:block; color:var(--muted); font-size:11px; margin-top:2px; }
+.toggle select{ width:auto; min-width:130px; padding:6px 8px; }
 
 .stat{
   display:flex; justify-content:space-between; gap:12px;
